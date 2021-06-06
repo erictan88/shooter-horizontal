@@ -1,6 +1,12 @@
 namespace SpriteKind {
     export const Shield = SpriteKind.create()
+    export const Powerup_kind = SpriteKind.create()
 }
+scene.onOverlapTile(SpriteKind.Enemy, sprites.swamp.swampTile9, function (sprite, location) {
+    sprite.setKind(SpriteKind.Player)
+    sprite.destroy()
+    info.changeLifeBy(-1)
+})
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (Energy > 0) {
         projectile = sprites.createProjectileFromSprite(img`
@@ -27,18 +33,15 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 info.onCountdownEnd(function () {
     GotShields = 0
-    ShieldUp.destroy()
+    PowerUp.destroy()
 })
 sprites.onOverlap(SpriteKind.Shield, SpriteKind.Enemy, function (sprite, otherSprite) {
     otherSprite.destroy(effects.ashes, 100)
     info.changeScoreBy(1)
 })
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
-    Energy += 50
-    otherSprite.destroy(effects.disintegrate, 100)
-})
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Shield, function (sprite, otherSprite) {
     GotShields = 1
+    Energy += 50
     info.startCountdown(3)
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, otherSprite) {
@@ -174,18 +177,25 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, oth
     false
     )
     info.changeScoreBy(1)
+    max_speed += -1
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
     otherSprite.destroy(effects.disintegrate, 100)
     info.changeLifeBy(-1)
 })
-let EnergyUp: Sprite = null
 let Asteroids: Sprite = null
-let ShieldUp: Sprite = null
+let PowerUp: Sprite = null
 let projectile: Sprite = null
 let GotShields = 0
 let Energy = 0
 let Hero: Sprite = null
+let spawn_time = 0
+tiles.setTilemap(tilemap`level1`)
+if (game.ask("Press A for Normal Mode", "Press B for Expert")) {
+    spawn_time = 2000
+} else {
+    spawn_time = 1000
+}
 Hero = sprites.create(img`
     . . . . . . . . . . . . . . . . 
     . . . . . . . . . . . . . . . . 
@@ -266,9 +276,10 @@ controller.moveSprite(Hero)
 Energy = 100
 info.setLife(3)
 GotShields = 0
+let max_speed = -40
 game.onUpdate(function () {
     if (GotShields == 1) {
-        ShieldUp.setImage(img`
+        PowerUp.setImage(img`
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . 9 9 9 9 . . . 
@@ -286,24 +297,10 @@ game.onUpdate(function () {
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . . . . . . . . 
             `)
-        ShieldUp.setPosition(Hero.x + 10, Hero.y)
+        PowerUp.setPosition(Hero.x + 10, Hero.y)
     }
 })
-game.onUpdateInterval(14000, function () {
-    ShieldUp = sprites.create(img`
-        . . b f f b . . 
-        . b f 5 5 f b . 
-        b 5 f 3 3 d 5 b 
-        b 5 3 f f 1 5 b 
-        c 5 3 5 5 f d c 
-        c d f f f f d c 
-        . f d d d d f . 
-        . . f f f f . . 
-        `, SpriteKind.Shield)
-    ShieldUp.setPosition(150, randint(10, 110))
-    ShieldUp.vx = randint(-20, -40)
-})
-game.onUpdateInterval(2000, function () {
+game.onUpdateInterval(spawn_time, function () {
     Asteroids = sprites.create(img`
         . . . . . c c b b b . . . . . . 
         . . . . c b d d d d b . . . . . 
@@ -323,7 +320,7 @@ game.onUpdateInterval(2000, function () {
         . . . . . . . . c c c c . . . . 
         `, SpriteKind.Enemy)
     Asteroids.setPosition(150, randint(10, 110))
-    Asteroids.vx = randint(-20, -40)
+    Asteroids.vx = randint(-20, max_speed)
     animation.runImageAnimation(
     Asteroids,
     [img`
@@ -366,7 +363,7 @@ game.onUpdateInterval(2000, function () {
     )
 })
 game.onUpdateInterval(10000, function () {
-    EnergyUp = sprites.create(img`
+    PowerUp = sprites.create(img`
         . . b b b b . . 
         . b f f f b b . 
         b 5 f 3 3 f 5 b 
@@ -375,7 +372,7 @@ game.onUpdateInterval(10000, function () {
         c d f 1 1 d d c 
         . f f d d d f . 
         . . f f f f . . 
-        `, SpriteKind.Food)
-    EnergyUp.setPosition(150, randint(10, 110))
-    EnergyUp.vx = randint(-20, -40)
+        `, SpriteKind.Shield)
+    PowerUp.setPosition(150, randint(10, 110))
+    PowerUp.vx = randint(-20, -40)
 })

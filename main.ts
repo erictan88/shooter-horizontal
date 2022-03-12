@@ -3,9 +3,7 @@ namespace SpriteKind {
     export const Powerup_kind = SpriteKind.create()
 }
 scene.onOverlapTile(SpriteKind.Enemy, sprites.swamp.swampTile9, function (sprite, location) {
-    sprite.setKind(SpriteKind.Player)
-    sprite.destroy()
-    info.changeLifeBy(-1)
+	
 })
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (Energy > 0) {
@@ -34,6 +32,10 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 info.onCountdownEnd(function () {
     GotShields = 0
     PowerUp.destroy()
+})
+scene.onHitWall(SpriteKind.Enemy, function (sprite, location) {
+    sprite.destroy()
+    info.changeLifeBy(-1)
 })
 sprites.onOverlap(SpriteKind.Shield, SpriteKind.Enemy, function (sprite, otherSprite) {
     otherSprite.destroy(effects.ashes, 100)
